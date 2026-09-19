@@ -167,6 +167,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 if (url == null || url.equals("about:blank") || url.isEmpty()) return;
+                // If network was lost during loading, don't show webview
+                if (!isNetworkAvailable()) {
+                    showError();
+                    return;
+                }
                 cancelTimeout();
                 pageLoaded = true;
                 webView.setVisibility(View.VISIBLE);

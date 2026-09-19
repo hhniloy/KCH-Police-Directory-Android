@@ -8,9 +8,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,9 +34,12 @@ public class UpdateChecker {
 
     private final Activity activity;
     private long downloadId = -1;
+    private Handler progressHandler;
+    private Runnable progressRunnable;
 
     public UpdateChecker(Activity activity) {
         this.activity = activity;
+        this.progressHandler = new Handler();
     }
 
     public void checkForUpdate() {
@@ -49,19 +55,16 @@ public class UpdateChecker {
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
 
                 if (connection.getResponseCode() != 200) return null;
 
                 BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream())
-                );
+                    new InputStreamReader(connection.getInputStream()));
                 StringBuilder response = new StringBuilder();
                 String line;
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
+                while ((line = reader.readLine()) != null) response.append(line);
                 reader.close();
 
                 JSONObject json = new JSONObject(response.toString());
@@ -111,7 +114,7 @@ public class UpdateChecker {
             .setPositiveButton("আপডেট করুন", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    showDownloadProgressDialog(info.downloadUrl, info.version);
+                    startDownload(info.downloadUrl, info.version);
                 }
             })
             .setNegativeButton("পরে করব", null)
@@ -119,55 +122,102 @@ public class UpdateChecker {
             .show();
     }
 
-    private void showDownloadProgressDialog(final String downloadUrl, final String version) {
-        // Build progress dialog
-        View dialogView = activity.getLayoutInflater()
-            .inflate(android.R.layout.activity_list_item, null);
+    private void startDownload(final String downloadUrl, final String version) {
+        // Build custom progress dialog
+        View dialogView = LayoutInflater.from(activity)
+            .inflate(R.layout.dialog_download_progress, null);
+
+        final TextView tvStatus = dialogView.findViewById(R.id.tvDownloadStatus);
+        final TextView tvPercent = dialogView.findViewById(R.id.tvDownloadPercent);
+        final ProgressBar progressBar = dialogView.findViewById(R.id.downloadProgressBar);
 
         final AlertDialog progressDialog = new AlertDialog.Builder(activity)
-            .setTitle("ডাউনলোড হচ্ছে...")
-            .setMessage("KCH Police Directory v" + version + " ডাউনলোড হচ্ছে, অপেক্ষা করুন...")
+            .setTitle("আপডেট ডাউনলোড হচ্ছে")
+            .setView(dialogView)
             .setCancelable(false)
             .create();
         progressDialog.show();
 
-        // Start download via DownloadManager
+        // Delete old APK if exists
         String fileName = "KCH-Police-Directory-v" + version + ".apk";
+        File oldFile = new File(
+            activity.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
+        if (oldFile.exists()) oldFile.delete();
 
+        // Start DownloadManager
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl))
             .setTitle("KCH Police Directory v" + version)
             .setDescription("আপডেট ডাউনলোড হচ্ছে...")
-            .setDestinationInExternalFilesDir(activity,
-                Environment.DIRECTORY_DOWNLOADS, fileName)
-            .setNotificationVisibility(
-                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            .setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
 
-        DownloadManager downloadManager =
+        final DownloadManager downloadManager =
             (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
         downloadId = downloadManager.enqueue(request);
 
-        // Listen for download completion
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        // Poll progress every 500ms
+        progressRunnable = new Runnable() {
             @Override
-            public void onReceive(Context context, Intent intent) {
-                long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-                if (id == downloadId) {
-                    progressDialog.dismiss();
-                    activity.unregisterReceiver(this);
-                    installApk(fileName);
+            public void run() {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+
+                DownloadManager.Query query = new DownloadManager.Query();
+                query.setFilterById(downloadId);
+                Cursor cursor = downloadManager.query(query);
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    int statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                    int status = cursor.getInt(statusCol);
+
+                    if (status == DownloadManager.STATUS_RUNNING ||
+                        status == DownloadManager.STATUS_PAUSED) {
+                        int bytesCol = cursor.getColumnIndex(
+                            DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);
+                        int totalCol = cursor.getColumnIndex(
+                            DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
+                        long downloaded = cursor.getLong(bytesCol);
+                        long total = cursor.getLong(totalCol);
+
+                        if (total > 0) {
+                            int percent = (int) (downloaded * 100 / total);
+                            progressBar.setProgress(percent);
+                            tvPercent.setText(percent + "%");
+                            tvStatus.setText(
+                                formatSize(downloaded) + " / " + formatSize(total));
+                        }
+                        cursor.close();
+                        progressHandler.postDelayed(this, 500);
+
+                    } else if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        cursor.close();
+                        progressBar.setProgress(100);
+                        tvPercent.setText("100%");
+                        tvStatus.setText("ডাউনলোড সম্পন্ন!");
+                        progressDialog.dismiss();
+                        installApk(fileName);
+
+                    } else if (status == DownloadManager.STATUS_FAILED) {
+                        cursor.close();
+                        progressDialog.dismiss();
+                        showError("ডাউনলোড ব্যর্থ হয়েছে। পুনরায় চেষ্টা করুন।");
+                    }
+                } else {
+                    if (cursor != null) cursor.close();
+                    progressHandler.postDelayed(this, 500);
                 }
             }
         };
-
-        activity.registerReceiver(receiver,
-            new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        progressHandler.postDelayed(progressRunnable, 500);
     }
 
     private void installApk(String fileName) {
         File apkFile = new File(
             activity.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
 
-        if (!apkFile.exists()) return;
+        if (!apkFile.exists()) {
+            showError("ফাইল পাওয়া যাচ্ছে না।");
+            return;
+        }
 
         Uri apkUri = FileProvider.getUriForFile(
             activity,
@@ -176,9 +226,29 @@ public class UpdateChecker {
 
         Intent installIntent = new Intent(Intent.ACTION_VIEW);
         installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-        installIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-            | Intent.FLAG_ACTIVITY_NEW_TASK);
+        installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(installIntent);
+    }
+
+    private void showError(final String message) {
+        if (activity.isFinishing() || activity.isDestroyed()) return;
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new AlertDialog.Builder(activity)
+                    .setTitle("ত্রুটি")
+                    .setMessage(message)
+                    .setPositiveButton("ঠিক আছে", null)
+                    .show();
+            }
+        });
+    }
+
+    private String formatSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        return String.format("%.1f MB", bytes / (1024.0 * 1024));
     }
 
     private static class UpdateInfo {
