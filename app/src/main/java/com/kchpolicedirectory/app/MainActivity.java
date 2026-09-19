@@ -122,8 +122,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                // Ignore errors for external schemes (WhatsApp, tel, etc.)
+                if (failingUrl.startsWith("whatsapp://") || 
+                    failingUrl.startsWith("tel:") || 
+                    failingUrl.startsWith("mailto:") ||
+                    failingUrl.startsWith("sms:")) {
+                    return;
+                }
+                
                 // Try fallback URL if primary fails
-                if (!fallbackAttempted && failingUrl.equals(PRIMARY_URL)) {
+                if (!fallbackAttempted && failingUrl.contains(PRIMARY_URL)) {
                     cancelTimeout();
                     fallbackAttempted = true;
                     loadFallbackUrl();
@@ -132,6 +140,12 @@ public class MainActivity extends AppCompatActivity {
                     cancelTimeout();
                     showError();
                 }
+            }
+            
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, android.webkit.WebResourceResponse errorResponse) {
+                // Handle HTTP errors (404, 500, etc.)
+                super.onReceivedHttpError(view, request, errorResponse);
             }
         });
 
@@ -190,6 +204,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showError() {
+        // Stop loading and clear WebView
+        webView.stopLoading();
+        webView.loadUrl("about:blank");
+        
         // Hide WebView and progress, show error layout
         webView.setVisibility(View.GONE);
         progressBar.setVisibility(View.GONE);

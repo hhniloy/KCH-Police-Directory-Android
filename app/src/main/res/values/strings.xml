@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">KCH Police Directory</string>
     <string name="loading">Loading…</string>
-    <string name="no_internet">No internet connection</string>
-    <string name="no_internet_message">Please check your internet connection and try again.</string>
-    <string name="retry">Retry</string>
+    <string name="no_internet">ইন্টারনেট সংযোগ নেই</string>
+    <string name="no_internet_message">অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ চেক করুন এবং আবার চেষ্টা করুন।</string>
+    <string name="retry">আবার চেষ্টা করুন</string>
     <string name="error_loading">Error loading page</string>
 </resources>
