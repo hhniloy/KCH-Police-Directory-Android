@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
-                // Network connected - run on UI thread
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
@@ -95,8 +94,6 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this,
                                 getString(R.string.network_available),
                                 Toast.LENGTH_SHORT).show();
-
-                            // Auto reload if error screen is showing
                             if (errorLayout.getVisibility() == View.VISIBLE) {
                                 fallbackAttempted = false;
                                 pageLoaded = false;
@@ -109,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onLost(Network network) {
-                // Network lost - run on UI thread
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
@@ -127,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
             .build();
         connectivityManager.registerNetworkCallback(request, networkCallback);
     }
+
+    private void setupSwipeRefresh() {
         swipeRefresh.setEnabled(false);
         swipeRefresh.setColorSchemeColors(
             getResources().getColor(R.color.colorPrimary),
@@ -208,7 +206,6 @@ public class MainActivity extends AppCompatActivity {
                 String url = request.getUrl().toString();
                 if (url.startsWith("whatsapp://") || url.startsWith("tel:") ||
                     url.startsWith("mailto:") || url.startsWith("sms:")) return;
-
                 if (!fallbackAttempted && url.contains(PRIMARY_URL)) {
                     cancelTimeout();
                     fallbackAttempted = true;
@@ -224,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
                 if (failingUrl == null) return;
                 if (failingUrl.startsWith("whatsapp://") || failingUrl.startsWith("tel:") ||
                     failingUrl.startsWith("mailto:") || failingUrl.startsWith("sms:")) return;
-
                 if (!fallbackAttempted && failingUrl.contains(PRIMARY_URL)) {
                     cancelTimeout();
                     fallbackAttempted = true;
@@ -316,7 +312,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         cancelTimeout();
-        // Unregister network callback to avoid memory leaks
         if (connectivityManager != null && networkCallback != null) {
             connectivityManager.unregisterNetworkCallback(networkCallback);
         }
