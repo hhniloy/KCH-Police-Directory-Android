@@ -78,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     }
     
     private void setupSwipeRefresh() {
+        // Disable default swipe refresh behavior
+        swipeRefresh.setEnabled(false);
+        
         swipeRefresh.setColorSchemeColors(
             getResources().getColor(R.color.colorPrimary),
             getResources().getColor(R.color.colorAccent)
@@ -94,7 +97,19 @@ public class MainActivity extends AppCompatActivity {
                 
                 fallbackAttempted = false;
                 pageLoaded = false;
-                webView.reload();
+                loadWebsite();
+            }
+        });
+        
+        // Enable swipe refresh only when page is loaded
+        webView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                if (scrollY == 0 && pageLoaded) {
+                    swipeRefresh.setEnabled(true);
+                } else {
+                    swipeRefresh.setEnabled(false);
+                }
             }
         });
     }
@@ -145,16 +160,30 @@ public class MainActivity extends AppCompatActivity {
             }
             
             @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                // Ignore blank pages
+                if (url.equals("about:blank") || url.isEmpty()) {
+                    return;
+                }
+                super.onPageStarted(view, url, favicon);
+            }
+            
+            @Override
             public void onPageFinished(WebView view, String url) {
+                // Ignore blank/empty pages
+                if (url == null || url.equals("about:blank") || url.isEmpty()) {
+                    return;
+                }
+                
                 // Cancel timeout when page loads successfully
                 cancelTimeout();
                 pageLoaded = true;
                 swipeRefresh.setRefreshing(false);
                 
-                // Hide loading indicator when page finishes loading
+                // NOW show WebView - only after page successfully loaded
+                webView.setVisibility(View.VISIBLE);
                 loadingLayout.setVisibility(View.GONE);
                 errorLayout.setVisibility(View.GONE);
-                webView.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -225,16 +254,18 @@ public class MainActivity extends AppCompatActivity {
     private void loadWebsite() {
         // Check internet connection first
         if (!isNetworkAvailable()) {
+            swipeRefresh.setRefreshing(false);
+            loadingLayout.setVisibility(View.GONE);
             showError();
             return;
         }
         
-        // Hide error layout and show loading indicator
+        // Hide everything except loading
         errorLayout.setVisibility(View.GONE);
         loadingLayout.setVisibility(View.VISIBLE);
-        webView.setVisibility(View.VISIBLE);
+        webView.setVisibility(View.GONE); // Keep hidden until page loads successfully
         
-        // Reset timeout flag
+        // Reset flags
         pageLoaded = false;
         
         // Set timeout for primary URL
@@ -280,12 +311,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showError() {
-        // Stop loading and clear WebView
+        // Stop loading
         webView.stopLoading();
-        webView.loadUrl("about:blank");
         swipeRefresh.setRefreshing(false);
+        cancelTimeout();
         
-        // Hide WebView and loading, show error layout
+        // Hide everything except error
         webView.setVisibility(View.GONE);
         loadingLayout.setVisibility(View.GONE);
         horizontalProgress.setVisibility(View.GONE);
