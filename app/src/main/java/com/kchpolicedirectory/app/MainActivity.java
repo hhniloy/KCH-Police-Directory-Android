@@ -80,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loadWebsite();
+
+        // Check for app updates
+        new UpdateChecker(this).checkForUpdate();
     }
 
     private void setupNetworkMonitor() {
