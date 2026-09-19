@@ -17,22 +17,15 @@
         android:progressDrawable="@drawable/progress_gradient"
         android:visibility="gone" />
 
-    <!-- Pull to Refresh + WebView -->
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefresh"
+    <!-- WebView -->
+    <WebView
+        android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/horizontalProgress">
+        android:layout_below="@id/horizontalProgress"
+        android:visibility="gone" />
 
-        <!-- WebView where the website will load -->
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <!-- Loading indicator shown while website loads -->
+    <!-- Loading indicator -->
     <LinearLayout
         android:id="@+id/loadingLayout"
         android:layout_width="match_parent"
@@ -60,7 +53,7 @@
 
     </LinearLayout>
 
-    <!-- Error layout shown when there's no internet -->
+    <!-- Error layout -->
     <LinearLayout
         android:id="@+id/errorLayout"
         android:layout_width="match_parent"
@@ -72,7 +65,6 @@
         android:visibility="gone"
         android:background="@color/white">
 
-        <!-- No Internet Icon -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

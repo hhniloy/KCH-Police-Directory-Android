@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -19,15 +21,12 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout errorLayout;
     private LinearLayout loadingLayout;
     private Button retryButton;
-    private SwipeRefreshLayout swipeRefresh;
 
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
@@ -62,12 +60,10 @@ public class MainActivity extends AppCompatActivity {
         errorLayout = findViewById(R.id.errorLayout);
         loadingLayout = findViewById(R.id.loadingLayout);
         retryButton = findViewById(R.id.retryButton);
-        swipeRefresh = findViewById(R.id.swipeRefresh);
 
         timeoutHandler = new Handler();
 
         setupWebView();
-        setupSwipeRefresh();
         setupNetworkMonitor();
 
         retryButton.setOnClickListener(new View.OnClickListener() {
@@ -126,34 +122,6 @@ public class MainActivity extends AppCompatActivity {
         connectivityManager.registerNetworkCallback(request, networkCallback);
     }
 
-    private void setupSwipeRefresh() {
-        swipeRefresh.setEnabled(false);
-        swipeRefresh.setColorSchemeColors(
-            getResources().getColor(R.color.colorPrimary),
-            getResources().getColor(R.color.colorAccent)
-        );
-        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                if (!isNetworkAvailable()) {
-                    swipeRefresh.setRefreshing(false);
-                    showError();
-                    return;
-                }
-                fallbackAttempted = false;
-                pageLoaded = false;
-                loadWebsite();
-            }
-        });
-
-        webView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-            @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                swipeRefresh.setEnabled(scrollY == 0 && pageLoaded);
-            }
-        });
-    }
-
     private void setupWebView() {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -196,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
                 if (url == null || url.equals("about:blank") || url.isEmpty()) return;
                 cancelTimeout();
                 pageLoaded = true;
-                swipeRefresh.setRefreshing(false);
                 webView.setVisibility(View.VISIBLE);
                 loadingLayout.setVisibility(View.GONE);
                 errorLayout.setVisibility(View.GONE);
@@ -249,7 +216,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadWebsite() {
         if (!isNetworkAvailable()) {
-            swipeRefresh.setRefreshing(false);
             loadingLayout.setVisibility(View.GONE);
             showError();
             return;
@@ -294,10 +260,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void showCustomToast(String message, boolean isConnected) {
         LayoutInflater inflater = getLayoutInflater();
-        android.view.View layout = inflater.inflate(R.layout.custom_toast,
+        View layout = inflater.inflate(R.layout.custom_toast,
             (android.view.ViewGroup) findViewById(android.R.id.content), false);
 
-        android.view.View toastLayout = layout.findViewById(R.id.toastLayout);
+        View toastLayout = layout.findViewById(R.id.toastLayout);
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
         bg.setColor(isConnected ? 0xFF2E7D32 : 0xFFC62828);
         bg.setCornerRadius(48f);
@@ -315,7 +281,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void showError() {
         webView.stopLoading();
-        swipeRefresh.setRefreshing(false);
         cancelTimeout();
         webView.setVisibility(View.GONE);
         loadingLayout.setVisibility(View.GONE);
