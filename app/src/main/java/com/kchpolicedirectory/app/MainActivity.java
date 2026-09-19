@@ -229,6 +229,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFallbackUrl() {
+        // Check network before loading fallback
+        if (!isNetworkAvailable()) {
+            showError();
+            return;
+        }
         webView.loadUrl(FALLBACK_URL);
     }
 
@@ -245,7 +250,11 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 if (!pageLoaded && !fallbackAttempted) {
                     fallbackAttempted = true;
-                    loadFallbackUrl();
+                    if (!isNetworkAvailable()) {
+                        showError();
+                    } else {
+                        loadFallbackUrl();
+                    }
                 }
             }
         };
