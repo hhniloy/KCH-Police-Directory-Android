@@ -1,11 +1,15 @@
 package com.kchpolicedirectory.app;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -81,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                // Check network before refreshing
+                if (!isNetworkAvailable()) {
+                    swipeRefresh.setRefreshing(false);
+                    showError();
+                    return;
+                }
+                
                 fallbackAttempted = false;
                 pageLoaded = false;
                 webView.reload();
@@ -147,8 +158,35 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                // Only handle errors for main page, not resources (images, css, etc.)
+                if (request.isForMainFrame()) {
+                    // Ignore errors for external schemes (WhatsApp, tel, etc.)
+                    String url = request.getUrl().toString();
+                    if (url.startsWith("whatsapp://") || 
+                        url.startsWith("tel:") || 
+                        url.startsWith("mailto:") ||
+                        url.startsWith("sms:")) {
+                        return;
+                    }
+                    
+                    // Try fallback URL if primary fails
+                    if (!fallbackAttempted && url.contains(PRIMARY_URL)) {
+                        cancelTimeout();
+                        fallbackAttempted = true;
+                        loadFallbackUrl();
+                    } else {
+                        // Show error layout if both URLs fail
+                        cancelTimeout();
+                        showError();
+                    }
+                }
+            }
+            
+            @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                // Ignore errors for external schemes (WhatsApp, tel, etc.)
+                // Legacy error handling for older Android versions
+                // Ignore errors for external schemes
                 if (failingUrl.startsWith("whatsapp://") || 
                     failingUrl.startsWith("tel:") || 
                     failingUrl.startsWith("mailto:") ||
@@ -166,12 +204,6 @@ public class MainActivity extends AppCompatActivity {
                     cancelTimeout();
                     showError();
                 }
-            }
-            
-            @Override
-            public void onReceivedHttpError(WebView view, WebResourceRequest request, android.webkit.WebResourceResponse errorResponse) {
-                // Handle HTTP errors (404, 500, etc.)
-                super.onReceivedHttpError(view, request, errorResponse);
             }
         });
 
@@ -191,6 +223,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadWebsite() {
+        // Check internet connection first
+        if (!isNetworkAvailable()) {
+            showError();
+            return;
+        }
+        
         // Hide error layout and show loading indicator
         errorLayout.setVisibility(View.GONE);
         loadingLayout.setVisibility(View.VISIBLE);
@@ -204,6 +242,12 @@ public class MainActivity extends AppCompatActivity {
         
         // Load the primary URL (Vercel)
         webView.loadUrl(PRIMARY_URL);
+    }
+    
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
     
     private void loadFallbackUrl() {
