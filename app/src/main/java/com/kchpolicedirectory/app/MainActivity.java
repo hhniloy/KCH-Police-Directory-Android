@@ -1,6 +1,7 @@
 package com.kchpolicedirectory.app;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -13,12 +14,20 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String WEBSITE_URL = "https://pdkch.netlify.app";
+    // Primary and fallback URLs
+    private static final String PRIMARY_URL = "https://kchpolicedirectory.vercel.app";
+    private static final String FALLBACK_URL = "https://pdkch.netlify.app";
+    private static final int TIMEOUT_SECONDS = 5;
     
     private WebView webView;
     private ProgressBar progressBar;
     private LinearLayout errorLayout;
     private Button retryButton;
+    
+    private Handler timeoutHandler;
+    private Runnable timeoutRunnable;
+    private boolean pageLoaded = false;
+    private boolean fallbackAttempted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         errorLayout = findViewById(R.id.errorLayout);
         retryButton = findViewById(R.id.retryButton);
+        
+        // Initialize timeout handler
+        timeoutHandler = new Handler();
 
         // Configure WebView settings
         setupWebView();
@@ -38,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
         retryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fallbackAttempted = false;
+                pageLoaded = false;
                 loadWebsite();
             }
         });
@@ -67,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
+                // Cancel timeout when page loads successfully
+                cancelTimeout();
+                pageLoaded = true;
+                
                 // Hide loading indicator when page finishes loading
                 progressBar.setVisibility(View.GONE);
                 errorLayout.setVisibility(View.GONE);
@@ -75,8 +93,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                // Show error layout if page fails to load
-                showError();
+                // Try fallback URL if primary fails
+                if (!fallbackAttempted && failingUrl.equals(PRIMARY_URL)) {
+                    cancelTimeout();
+                    fallbackAttempted = true;
+                    loadFallbackUrl();
+                } else {
+                    // Show error layout if both URLs fail
+                    cancelTimeout();
+                    showError();
+                }
             }
         });
 
@@ -95,8 +121,43 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         webView.setVisibility(View.VISIBLE);
         
-        // Load the KCH Police Directory website
-        webView.loadUrl(WEBSITE_URL);
+        // Reset timeout flag
+        pageLoaded = false;
+        
+        // Set timeout for primary URL
+        startTimeout();
+        
+        // Load the primary URL (Vercel)
+        webView.loadUrl(PRIMARY_URL);
+    }
+    
+    private void loadFallbackUrl() {
+        // Load the fallback URL (Netlify) without timeout
+        webView.loadUrl(FALLBACK_URL);
+    }
+    
+    private void startTimeout() {
+        cancelTimeout(); // Cancel any existing timeout
+        
+        timeoutRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // If page hasn't loaded within timeout and fallback not attempted
+                if (!pageLoaded && !fallbackAttempted) {
+                    fallbackAttempted = true;
+                    loadFallbackUrl();
+                }
+            }
+        };
+        
+        // Start timeout (5 seconds)
+        timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_SECONDS * 1000);
+    }
+    
+    private void cancelTimeout() {
+        if (timeoutHandler != null && timeoutRunnable != null) {
+            timeoutHandler.removeCallbacks(timeoutRunnable);
+        }
     }
 
     private void showError() {
@@ -119,6 +180,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        // Cancel timeout
+        cancelTimeout();
+        
         // Clean up WebView
         if (webView != null) {
             webView.destroy();
