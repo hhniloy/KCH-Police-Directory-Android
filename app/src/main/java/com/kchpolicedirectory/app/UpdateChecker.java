@@ -20,7 +20,6 @@ public class UpdateChecker {
     private static final String API_URL =
         "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/releases/latest";
 
-    // Current app version (must match versionName in build.gradle)
     private static final String CURRENT_VERSION = BuildConfig.VERSION_NAME;
 
     private final Activity activity;
