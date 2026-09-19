@@ -1,9 +1,12 @@
 package com.kchpolicedirectory.app;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -79,6 +82,32 @@ public class MainActivity extends AppCompatActivity {
         
         // Load websites in this WebView instead of external browser
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                
+                // Handle external schemes (WhatsApp, Phone, Email, etc.)
+                if (url.startsWith("whatsapp://") || 
+                    url.startsWith("https://wa.me/") ||
+                    url.startsWith("https://api.whatsapp.com/") ||
+                    url.startsWith("tel:") || 
+                    url.startsWith("mailto:") ||
+                    url.startsWith("sms:") ||
+                    url.startsWith("intent:")) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        startActivity(intent);
+                        return true;
+                    } catch (Exception e) {
+                        // If app not installed, do nothing
+                        return true;
+                    }
+                }
+                
+                // Load normal URLs in WebView
+                return false;
+            }
+            
             @Override
             public void onPageFinished(WebView view, String url) {
                 // Cancel timeout when page loads successfully
