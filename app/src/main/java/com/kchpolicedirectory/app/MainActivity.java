@@ -111,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         wasConnected = false;
                         showCustomToast(getString(R.string.no_internet), false);
+                        // If still loading when network lost, show error screen
+                        if (!pageLoaded) {
+                            cancelTimeout();
+                            showError();
+                        }
                     }
                 });
             }

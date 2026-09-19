@@ -10,9 +10,9 @@ android {
         applicationId "com.kchpolicedirectory.app"
         minSdk 26
         targetSdk 34
-        versionCode 4
-        versionName "1.4"
-        buildConfigField "String", "VERSION_NAME", "\"1.4\""
+        versionCode 5
+        versionName "1.5"
+        buildConfigField "String", "VERSION_NAME", "\"1.5\""
     }
     
     buildFeatures {
