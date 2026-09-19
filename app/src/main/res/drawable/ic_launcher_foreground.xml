@@ -15,7 +15,7 @@
         android:fillColor="#1565C0"
         android:pathData="M100,24 L160,49 L160,108 Q160,162 100,180 Q40,162 40,108 L40,49 Z" />
 
-    <!-- Shield blue gradient overlay -->
+    <!-- Shield gradient overlay -->
     <path
         android:fillColor="#0D47A1"
         android:alpha="0.4"
@@ -29,29 +29,33 @@
     <!-- K - vertical bar -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M58,88 L58,128 L66,128 L66,88 Z" />
-    <!-- K - top diagonal arm -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M66,108 L66,88 L74,88 L86,108 Z" />
-    <!-- K - bottom diagonal arm -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M66,108 L66,128 L74,128 L86,108 Z" />
+        android:pathData="M58,88 L66,88 L66,128 L58,128 Z" />
 
-    <!-- C -->
+    <!-- K - top arm -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M103,88 L95,88 Q88,88 88,108 Q88,128 95,128 L103,128 L103,121 L96,121 Q95,121 95,108 Q95,95 96,95 L103,95 Z" />
+        android:pathData="M66,88 L74,88 L86,108 L78,108 Z" />
+
+    <!-- K - bottom arm -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,128 L74,128 L86,108 L78,108 Z" />
+
+    <!-- C - outer arc approximated with path -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M103,88 L95,88 Q85,88 85,108 Q85,128 95,128 L103,128 L103,120 L96,120 Q93,120 93,108 Q93,96 96,96 L103,96 Z" />
 
     <!-- H - left bar -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M108,88 L108,128 L116,128 L116,88 Z" />
+        android:pathData="M108,88 L116,88 L116,128 L108,128 Z" />
+
     <!-- H - right bar -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M130,88 L130,128 L138,128 L138,88 Z" />
+        android:pathData="M130,88 L138,88 L138,128 L130,128 Z" />
+
     <!-- H - crossbar -->
     <path
         android:fillColor="#FFFFFF"
