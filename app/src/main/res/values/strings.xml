@@ -7,6 +7,6 @@
     <string name="retry">আবার চেষ্টা করুন</string>
     <string name="error_loading">Error loading page</string>
     <string name="splash_tagline">খাগড়াছড়ি জেলা পুলিশ ডিরেক্টরি</string>
-    <string name="splash_footer">Version 2.1.2</string>
+    <string name="splash_footer">Version 2.1.3</string>
     <string name="network_available">ইন্টারনেট সংযুক্ত হয়েছে</string>
 </resources>
