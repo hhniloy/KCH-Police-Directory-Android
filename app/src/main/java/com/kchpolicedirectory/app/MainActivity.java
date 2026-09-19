@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String WEBSITE_URL = "https://kchpolicedirectory.vercel.app";
+    private static final String WEBSITE_URL = "https://pdkch.netlify.app";
     
     private WebView webView;
     private ProgressBar progressBar;

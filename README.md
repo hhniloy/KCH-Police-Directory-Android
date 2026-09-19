@@ -4,12 +4,12 @@ A simple Android application that displays the KCH Police Directory website in a
 
 ## About
 
-This app provides easy mobile access to the KCH Police Directory website (https://kchpolicedirectory.vercel.app) through a lightweight native Android application.
+This app provides easy mobile access to the KCH Police Directory website (https://pdkch.netlify.app) through a lightweight native Android application.
 
 ## Features
 
 - Native Android WebView implementation
-- Loads https://kchpolicedirectory.vercel.app
+- Loads https://pdkch.netlify.app
 - Offline detection with retry functionality
 - Back button navigation support
 - Small APK size
