@@ -2,27 +2,59 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    
-    <!-- Background circle -->
-    <path
-        android:fillColor="#1976D2"
-        android:pathData="M0,0h108v108h-108z"/>
-    
-    <!-- Shield shape (represents police/authority) -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,30 L42,34 L42,48 Q42,58 54,66 Q66,58 66,48 L66,34 Z"/>
-    
-    <!-- Star in the center (represents authority/directory) -->
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Shield gold border -->
     <path
         android:fillColor="#FFC107"
-        android:pathData="M54,42 L55.5,46.5 L60,46.5 L56.5,49 L58,53.5 L54,51 L50,53.5 L51.5,49 L48,46.5 L52.5,46.5 Z"/>
-    
-    <!-- Directory book icon at bottom -->
+        android:pathData="M100,15 L168,42 L168,108 Q168,168 100,188 Q32,168 32,108 L32,42 Z" />
+
+    <!-- Shield blue fill -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M100,24 L160,49 L160,108 Q160,162 100,180 Q40,162 40,108 L40,49 Z" />
+
+    <!-- Shield blue gradient overlay -->
+    <path
+        android:fillColor="#0D47A1"
+        android:alpha="0.4"
+        android:pathData="M100,24 L160,49 L160,108 Q160,162 100,180 Q40,162 40,108 L40,49 Z" />
+
+    <!-- Star at top inside shield -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M100,32 L102,38 L108,38 L103,42 L105,48 L100,44 L95,48 L97,42 L92,38 L98,38 Z" />
+
+    <!-- K - vertical bar -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M44,68 L44,78 L64,78 L64,68 L60,68 L60,74 L48,74 L48,68 Z"/>
-    
+        android:pathData="M58,88 L58,128 L66,128 L66,88 Z" />
+    <!-- K - top diagonal arm -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,108 L66,88 L74,88 L86,108 Z" />
+    <!-- K - bottom diagonal arm -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,108 L66,128 L74,128 L86,108 Z" />
+
+    <!-- C -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M103,88 L95,88 Q88,88 88,108 Q88,128 95,128 L103,128 L103,121 L96,121 Q95,121 95,108 Q95,95 96,95 L103,95 Z" />
+
+    <!-- H - left bar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M108,88 L108,128 L116,128 L116,88 Z" />
+    <!-- H - right bar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M130,88 L130,128 L138,128 L138,88 Z" />
+    <!-- H - crossbar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M116,104 L130,104 L130,112 L116,112 Z" />
+
 </vector>
