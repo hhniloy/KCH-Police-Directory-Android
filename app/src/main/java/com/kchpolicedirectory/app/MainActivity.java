@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,8 +25,11 @@ public class MainActivity extends AppCompatActivity {
     
     private WebView webView;
     private ProgressBar progressBar;
+    private ProgressBar horizontalProgress;
     private LinearLayout errorLayout;
+    private LinearLayout loadingLayout;
     private Button retryButton;
+    private SwipeRefreshLayout swipeRefresh;
     
     private Handler timeoutHandler;
     private Runnable timeoutRunnable;
@@ -40,14 +44,20 @@ public class MainActivity extends AppCompatActivity {
         // Initialize views
         webView = findViewById(R.id.webView);
         progressBar = findViewById(R.id.progressBar);
+        horizontalProgress = findViewById(R.id.horizontalProgress);
         errorLayout = findViewById(R.id.errorLayout);
+        loadingLayout = findViewById(R.id.loadingLayout);
         retryButton = findViewById(R.id.retryButton);
+        swipeRefresh = findViewById(R.id.swipeRefresh);
         
         // Initialize timeout handler
         timeoutHandler = new Handler();
 
         // Configure WebView settings
         setupWebView();
+        
+        // Setup SwipeRefreshLayout
+        setupSwipeRefresh();
 
         // Set up retry button
         retryButton.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +71,21 @@ public class MainActivity extends AppCompatActivity {
 
         // Load the website
         loadWebsite();
+    }
+    
+    private void setupSwipeRefresh() {
+        swipeRefresh.setColorSchemeColors(
+            getResources().getColor(R.color.colorPrimary),
+            getResources().getColor(R.color.colorAccent)
+        );
+        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                fallbackAttempted = false;
+                pageLoaded = false;
+                webView.reload();
+            }
+        });
     }
 
     private void setupWebView() {
@@ -113,9 +138,10 @@ public class MainActivity extends AppCompatActivity {
                 // Cancel timeout when page loads successfully
                 cancelTimeout();
                 pageLoaded = true;
+                swipeRefresh.setRefreshing(false);
                 
                 // Hide loading indicator when page finishes loading
-                progressBar.setVisibility(View.GONE);
+                loadingLayout.setVisibility(View.GONE);
                 errorLayout.setVisibility(View.GONE);
                 webView.setVisibility(View.VISIBLE);
             }
@@ -153,7 +179,13 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
-                // You could add a horizontal progress bar here if desired
+                // Update horizontal progress bar
+                if (newProgress < 100) {
+                    horizontalProgress.setVisibility(View.VISIBLE);
+                    horizontalProgress.setProgress(newProgress);
+                } else {
+                    horizontalProgress.setVisibility(View.GONE);
+                }
             }
         });
     }
@@ -161,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadWebsite() {
         // Hide error layout and show loading indicator
         errorLayout.setVisibility(View.GONE);
-        progressBar.setVisibility(View.VISIBLE);
+        loadingLayout.setVisibility(View.VISIBLE);
         webView.setVisibility(View.VISIBLE);
         
         // Reset timeout flag
@@ -207,10 +239,12 @@ public class MainActivity extends AppCompatActivity {
         // Stop loading and clear WebView
         webView.stopLoading();
         webView.loadUrl("about:blank");
+        swipeRefresh.setRefreshing(false);
         
-        // Hide WebView and progress, show error layout
+        // Hide WebView and loading, show error layout
         webView.setVisibility(View.GONE);
-        progressBar.setVisibility(View.GONE);
+        loadingLayout.setVisibility(View.GONE);
+        horizontalProgress.setVisibility(View.GONE);
         errorLayout.setVisibility(View.VISIBLE);
     }
 
