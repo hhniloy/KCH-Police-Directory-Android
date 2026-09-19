@@ -19,9 +19,12 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -91,9 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         if (!wasConnected) {
                             wasConnected = true;
-                            Toast.makeText(MainActivity.this,
-                                getString(R.string.network_available),
-                                Toast.LENGTH_SHORT).show();
+                            showCustomToast(getString(R.string.network_available), true);
                             if (errorLayout.getVisibility() == View.VISIBLE) {
                                 fallbackAttempted = false;
                                 pageLoaded = false;
@@ -110,9 +111,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         wasConnected = false;
-                        Toast.makeText(MainActivity.this,
-                            getString(R.string.no_internet),
-                            Toast.LENGTH_LONG).show();
+                        showCustomToast(getString(R.string.no_internet), false);
                     }
                 });
             }
@@ -290,7 +289,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showError() {
+    private void showCustomToast(String message, boolean isConnected) {
+        LayoutInflater inflater = getLayoutInflater();
+        android.view.View layout = inflater.inflate(R.layout.custom_toast,
+            (android.view.ViewGroup) findViewById(android.R.id.content), false);
+
+        // Set background color
+        android.view.View toastLayout = layout.findViewById(R.id.toastLayout);
+        if (isConnected) {
+            toastLayout.setBackgroundResource(0);
+            toastLayout.setBackground(getDrawable(android.R.drawable.toast_frame));
+            // Green background
+            toastLayout.setBackgroundColor(0xFF2E7D32); // Dark green
+        } else {
+            // Red background
+            toastLayout.setBackgroundColor(0xFFC62828); // Dark red
+        }
+        // Apply rounded corners
+        toastLayout.setBackground(null);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setColor(isConnected ? 0xFF2E7D32 : 0xFFC62828);
+        bg.setCornerRadius(48f);
+        toastLayout.setBackground(bg);
+
+        TextView text = layout.findViewById(R.id.toastText);
+        text.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.CENTER, 0, 0); // Center of screen
+        toast.setDuration(isConnected ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+    }
         webView.stopLoading();
         swipeRefresh.setRefreshing(false);
         cancelTimeout();

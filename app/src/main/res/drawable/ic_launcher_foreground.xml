@@ -5,60 +5,77 @@
     android:viewportWidth="200"
     android:viewportHeight="200">
 
-    <!-- Shield gold border -->
+    <!-- Shield outer gold border -->
     <path
-        android:fillColor="#FFC107"
-        android:pathData="M100,15 L168,42 L168,108 Q168,168 100,188 Q32,168 32,108 L32,42 Z" />
+        android:fillColor="#C9A84C"
+        android:pathData="M100,8 L170,30 L178,90 Q178,155 100,190 Q22,155 22,90 L30,30 Z" />
 
-    <!-- Shield blue fill -->
+    <!-- Shield inner dark blue -->
     <path
-        android:fillColor="#1565C0"
-        android:pathData="M100,24 L160,49 L160,108 Q160,162 100,180 Q40,162 40,108 L40,49 Z" />
+        android:fillColor="#1a2a4a"
+        android:pathData="M100,16 L162,36 L170,90 Q170,150 100,182 Q30,150 30,90 L38,36 Z" />
 
-    <!-- Shield gradient overlay -->
+    <!-- Sunburst lines behind star -->
+    <path android:strokeColor="#2a5a9a" android:strokeWidth="0.8" android:fillColor="#00000000"
+        android:pathData="M100,75 L100,55 M100,125 L100,145 M75,100 L55,100 M125,100 L145,100 M82,82 L68,68 M118,82 L132,68 M82,118 L68,132 M118,118 L132,132" />
+    <path android:strokeColor="#2a5a9a" android:strokeWidth="0.8" android:fillColor="#00000000"
+        android:pathData="M78,90 L62,83 M122,90 L138,83 M78,110 L62,117 M122,110 L138,117 M90,78 L83,62 M110,78 L117,62 M90,122 L83,138 M110,122 L117,138" />
+
+    <!-- 8-pointed star outer gold -->
     <path
-        android:fillColor="#0D47A1"
+        android:fillColor="#C9A84C"
+        android:pathData="M100,62 L105,88 L118,75 L105,95 L131,95 L112,107 L124,128 L100,115 L76,128 L88,107 L69,95 L95,95 L82,75 L95,88 Z" />
+
+    <!-- 8-pointed star inner silver/white -->
+    <path
+        android:fillColor="#FFFFFF"
         android:alpha="0.4"
-        android:pathData="M100,24 L160,49 L160,108 Q160,162 100,180 Q40,162 40,108 L40,49 Z" />
+        android:pathData="M100,72 L104,89 L114,79 L104,96 L121,96 L108,105 L117,122 L100,112 L83,122 L92,105 L79,96 L96,96 L86,79 L96,89 Z" />
 
-    <!-- Star at top inside shield -->
+    <!-- Star center circle -->
     <path
-        android:fillColor="#FFC107"
-        android:pathData="M100,32 L102,38 L108,38 L103,42 L105,48 L100,44 L95,48 L97,42 L92,38 L98,38 Z" />
+        android:fillColor="#F0D080"
+        android:pathData="M100,92 A8,8 0 1,1 100,108 A8,8 0 1,1 100,92 Z" />
 
-    <!-- K - vertical bar -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M58,88 L66,88 L66,128 L58,128 Z" />
-
-    <!-- K - top arm -->
+    <!-- POLICE text -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M66,88 L74,88 L86,108 L78,108 Z" />
+        android:pathData="
+        M50,50 L50,44 L53,44 Q55,44 55,47 Q55,50 53,50 Z
+        M51,45 L51,49 L53,49 Q54,49 54,47 Q54,45 53,45 Z
+        M57,44 L57,50 L61,50 L61,49 L58,49 L58,47 L60,47 L60,46 L58,46 L58,45 L61,45 L61,44 Z
+        M63,44 L63,50 L64,50 L64,47 L67,50 L68,50 L68,44 L67,44 L67,47 L64,44 Z
+        M70,47 A3,3 0 1,1 76,47 A3,3 0 1,1 70,47 Z
+        M71,47 A2,2 0 1,1 75,47 A2,2 0 1,1 71,47 Z
+        M78,44 L78,50 L79,50 L79,44 Z
+        M81,44 L81,50 L85,50 L85,49 L82,49 L82,44 Z" />
 
-    <!-- K - bottom arm -->
+    <!-- Simpler POLICE text using rectangles for legibility -->
+    <!-- P -->
+    <path android:fillColor="#FFFFFF" android:pathData="M46,44 L46,56 L48,56 L48,51 L51,51 Q54,51 54,47.5 Q54,44 51,44 Z M48,45 L51,45 Q52,45 52,47.5 Q52,50 51,50 L48,50 Z"/>
+    <!-- O -->
+    <path android:fillColor="#FFFFFF" android:pathData="M56,44 Q60,44 60,50 Q60,56 56,56 Q52,56 52,50 Q52,44 56,44 Z M56,46 Q54,46 54,50 Q54,54 56,54 Q58,54 58,50 Q58,46 56,46 Z"/>
+    <!-- L -->
+    <path android:fillColor="#FFFFFF" android:pathData="M62,44 L62,56 L68,56 L68,54 L64,54 L64,44 Z"/>
+    <!-- I -->
+    <path android:fillColor="#FFFFFF" android:pathData="M70,44 L70,56 L72,56 L72,44 Z"/>
+    <!-- C -->
+    <path android:fillColor="#FFFFFF" android:pathData="M79,44 L74,44 Q71,44 71,50 Q71,56 74,56 L79,56 L79,54 L74,54 Q73,54 73,50 Q73,46 74,46 L79,46 Z"/>
+    <!-- E -->
+    <path android:fillColor="#FFFFFF" android:pathData="M81,44 L81,56 L88,56 L88,54 L83,54 L83,51 L87,51 L87,49 L83,49 L83,46 L88,46 L88,44 Z"/>
+
+    <!-- Banner at bottom -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M66,128 L74,128 L86,108 L78,108 Z" />
+        android:alpha="0.9"
+        android:pathData="M42,138 Q42,150 52,151 L100,153 L148,151 Q158,150 158,138 L150,135 Q125,141 100,141 Q75,141 50,135 Z" />
 
-    <!-- C - outer arc approximated with path -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M103,88 L95,88 Q85,88 85,108 Q85,128 95,128 L103,128 L103,120 L96,120 Q93,120 93,108 Q93,96 96,96 L103,96 Z" />
-
-    <!-- H - left bar -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M108,88 L116,88 L116,128 L108,128 Z" />
-
-    <!-- H - right bar -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M130,88 L138,88 L138,128 L130,128 Z" />
-
-    <!-- H - crossbar -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M116,104 L130,104 L130,112 L116,112 Z" />
+    <!-- Small decoration dots -->
+    <path android:fillColor="#F0D080"
+        android:pathData="M65,61 A2,2 0 1,1 65,65 A2,2 0 1,1 65,61 Z"/>
+    <path android:fillColor="#F0D080"
+        android:pathData="M135,61 A2,2 0 1,1 135,65 A2,2 0 1,1 135,61 Z"/>
+    <path android:fillColor="#F0D080"
+        android:pathData="M100,163 A2,2 0 1,1 100,167 A2,2 0 1,1 100,163 Z"/>
 
 </vector>
