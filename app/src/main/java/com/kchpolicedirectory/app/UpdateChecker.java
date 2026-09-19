@@ -150,8 +150,11 @@ public class UpdateChecker {
                                 downloaded += n;
                                 if (total > 0) {
                                     int pct = (int) (downloaded * 100 / total);
-                                    publishProgress(pct,
-                                        (int) downloaded, (int) total);
+                                    publishProgress(new int[]{
+                                        pct,
+                                        (int) downloaded,
+                                        (int) total
+                                    });
                                 }
                             }
                             out.close();
