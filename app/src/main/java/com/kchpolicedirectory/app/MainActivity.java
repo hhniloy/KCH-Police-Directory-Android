@@ -4,10 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.net.NetworkRequest;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -18,6 +22,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -39,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private Runnable timeoutRunnable;
     private boolean pageLoaded = false;
     private boolean fallbackAttempted = false;
+    private boolean wasConnected = true;
+    private ConnectivityManager connectivityManager;
+    private ConnectivityManager.NetworkCallback networkCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupWebView();
         setupSwipeRefresh();
+        setupNetworkMonitor();
 
         retryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,7 +79,54 @@ public class MainActivity extends AppCompatActivity {
         loadWebsite();
     }
 
-    private void setupSwipeRefresh() {
+    private void setupNetworkMonitor() {
+        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        wasConnected = isNetworkAvailable();
+
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                // Network connected - run on UI thread
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!wasConnected) {
+                            wasConnected = true;
+                            Toast.makeText(MainActivity.this,
+                                getString(R.string.network_available),
+                                Toast.LENGTH_SHORT).show();
+
+                            // Auto reload if error screen is showing
+                            if (errorLayout.getVisibility() == View.VISIBLE) {
+                                fallbackAttempted = false;
+                                pageLoaded = false;
+                                loadWebsite();
+                            }
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onLost(Network network) {
+                // Network lost - run on UI thread
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        wasConnected = false;
+                        Toast.makeText(MainActivity.this,
+                            getString(R.string.no_internet),
+                            Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        };
+
+        NetworkRequest request = new NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build();
+        connectivityManager.registerNetworkCallback(request, networkCallback);
+    }
         swipeRefresh.setEnabled(false);
         swipeRefresh.setColorSchemeColors(
             getResources().getColor(R.color.colorPrimary),
@@ -260,6 +316,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         cancelTimeout();
+        // Unregister network callback to avoid memory leaks
+        if (connectivityManager != null && networkCallback != null) {
+            connectivityManager.unregisterNetworkCallback(networkCallback);
+        }
         if (webView != null) {
             webView.destroy();
         }
