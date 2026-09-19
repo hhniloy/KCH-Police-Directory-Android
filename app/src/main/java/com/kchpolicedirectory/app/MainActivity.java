@@ -294,19 +294,7 @@ public class MainActivity extends AppCompatActivity {
         android.view.View layout = inflater.inflate(R.layout.custom_toast,
             (android.view.ViewGroup) findViewById(android.R.id.content), false);
 
-        // Set background color
         android.view.View toastLayout = layout.findViewById(R.id.toastLayout);
-        if (isConnected) {
-            toastLayout.setBackgroundResource(0);
-            toastLayout.setBackground(getDrawable(android.R.drawable.toast_frame));
-            // Green background
-            toastLayout.setBackgroundColor(0xFF2E7D32); // Dark green
-        } else {
-            // Red background
-            toastLayout.setBackgroundColor(0xFFC62828); // Dark red
-        }
-        // Apply rounded corners
-        toastLayout.setBackground(null);
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
         bg.setColor(isConnected ? 0xFF2E7D32 : 0xFFC62828);
         bg.setCornerRadius(48f);
@@ -316,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
         text.setText(message);
 
         Toast toast = new Toast(getApplicationContext());
-        toast.setGravity(Gravity.CENTER, 0, 0); // Center of screen
+        toast.setGravity(Gravity.CENTER, 0, 0);
         toast.setDuration(isConnected ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG);
         toast.setView(layout);
         toast.show();
