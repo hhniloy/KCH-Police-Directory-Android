@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Outer Circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    
+    <!-- Shield -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M60,25 L45,32 L45,55 Q45,70 60,85 Q75,70 75,55 L75,32 Z" />
+    
+    <!-- Star -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M60,40 L62,48 L70,48 L64,53 L66,61 L60,56 L54,61 L56,53 L50,48 L58,48 Z" />
+    
+    <!-- BD Text (Small) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M55,68 L55,75 L58,75 Q60,75 60,72.5 Q60,70 58,70 L55,70 L55,68 Z M55,70 L58,70 Q60,70 60,72.5 Q60,75 58,75 L60,75 Q62,75 62,72.5 Q62,70 60,70 Z" />
+    
+</vector>

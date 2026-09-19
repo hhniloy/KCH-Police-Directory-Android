@@ -346,3 +346,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 }
+
+import android.widget.Toast;
+import android.view.Window;
+import android.view.WindowManager;
+import android.graphics.Color;
+import android.os.Build;

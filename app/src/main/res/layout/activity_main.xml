@@ -14,7 +14,7 @@
         android:indeterminate="false"
         android:max="100"
         android:progress="0"
-        android:progressTint="@color/colorPrimary"
+        android:progressDrawable="@drawable/progress_gradient"
         android:visibility="gone" />
 
     <!-- Pull to Refresh + WebView -->
