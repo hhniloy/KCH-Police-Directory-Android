@@ -309,6 +309,8 @@ public class MainActivity extends AppCompatActivity {
         toast.setView(layout);
         toast.show();
     }
+
+    private void showError() {
         webView.stopLoading();
         swipeRefresh.setRefreshing(false);
         cancelTimeout();
