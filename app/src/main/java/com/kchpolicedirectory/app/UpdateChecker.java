@@ -187,25 +187,54 @@ public class UpdateChecker {
                 if (success) {
                     installApk(dest);
                 } else if (!downloadCancelled) {
-                    new AlertDialog.Builder(activity)
-                        .setTitle("ত্রুটি")
-                        .setMessage("ডাউনলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।")
-                        .setPositiveButton("ঠিক আছে", null)
-                        .show();
+                    showErrorDialog("ডাউনলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।");
                 }
             }
         }.execute();
     }
 
     // ── Step 4: Install downloaded APK ───────────────────────────────────────
-    private void installApk(File apkFile) {
-        Uri uri = FileProvider.getUriForFile(
-            activity, "com.kchpolicedirectory.app.fileprovider", apkFile);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "application/vnd.android.package-archive");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        activity.startActivity(intent);
+    private void installApk(final File apkFile) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!apkFile.exists()) {
+                        showErrorDialog("ফাইল পাওয়া যাচ্ছে না: " + apkFile.getAbsolutePath());
+                        return;
+                    }
+
+                    Uri uri = FileProvider.getUriForFile(
+                        activity,
+                        activity.getPackageName() + ".fileprovider",
+                        apkFile);
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(uri, "application/vnd.android.package-archive");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    activity.startActivity(intent);
+
+                } catch (Exception e) {
+                    showErrorDialog("ইনস্টল করতে সমস্যা হয়েছে: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private void showErrorDialog(final String message) {
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                new AlertDialog.Builder(activity)
+                    .setTitle("ত্রুটি")
+                    .setMessage(message)
+                    .setPositiveButton("ঠিক আছে", null)
+                    .show();
+            }
+        });
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
