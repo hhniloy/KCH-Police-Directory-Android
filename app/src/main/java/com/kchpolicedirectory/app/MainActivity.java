@@ -1,7 +1,9 @@
 package com.kchpolicedirectory.app;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -9,12 +11,14 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkRequest;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -26,13 +30,18 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String PRIMARY_URL = "https://kchpolicedirectory.vercel.app";
     private static final String FALLBACK_URL = "https://pdkch.netlify.app";
     private static final int TIMEOUT_SECONDS = 5;
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     private WebView webView;
     private ProgressBar progressBar;
@@ -49,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
     private ConnectivityManager connectivityManager;
     private ConnectivityManager.NetworkCallback networkCallback;
 
+    // File chooser variables
+    private ValueCallback<Uri[]> filePathCallback;
+    private ActivityResultLauncher<Intent> fileChooserLauncher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +75,27 @@ public class MainActivity extends AppCompatActivity {
         retryButton = findViewById(R.id.retryButton);
 
         timeoutHandler = new Handler();
+
+        // Initialize file chooser launcher
+        fileChooserLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (filePathCallback == null) return;
+                
+                Uri[] results = null;
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        String dataString = data.getDataString();
+                        if (dataString != null) {
+                            results = new Uri[]{Uri.parse(dataString)};
+                        }
+                    }
+                }
+                filePathCallback.onReceiveValue(results);
+                filePathCallback = null;
+            }
+        );
 
         setupWebView();
         setupNetworkMonitor();
@@ -135,6 +169,8 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setSupportZoom(true);
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
+        webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -221,7 +257,90 @@ public class MainActivity extends AppCompatActivity {
                     horizontalProgress.setVisibility(View.GONE);
                 }
             }
+
+            // For Android 5.0+
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
+                                            FileChooserParams fileChooserParams) {
+                // Check if we already have a file chooser callback
+                if (MainActivity.this.filePathCallback != null) {
+                    MainActivity.this.filePathCallback.onReceiveValue(null);
+                }
+                MainActivity.this.filePathCallback = filePathCallback;
+
+                // Check permissions
+                if (!checkPermissions()) {
+                    requestPermissions();
+                    return true;
+                }
+
+                // Launch file chooser
+                launchFileChooser(fileChooserParams);
+                return true;
+            }
         });
+    }
+
+    private boolean checkPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+
+            return ContextCompat.checkSelfPermission(this, 
+                android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            // Below Android 13
+            return ContextCompat.checkSelfPermission(this, 
+                android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+
+            ActivityCompat.requestPermissions(this,
+                new String[]{android.Manifest.permission.READ_MEDIA_IMAGES},
+                PERMISSION_REQUEST_CODE);
+        } else {
+            // Below Android 13
+            ActivityCompat.requestPermissions(this,
+                new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, launch file chooser
+                launchFileChooser(null);
+            } else {
+                // Permission denied
+                if (filePathCallback != null) {
+                    filePathCallback.onReceiveValue(null);
+                    filePathCallback = null;
+                }
+                Toast.makeText(this, "ফাইল আপলোড করার জন্য অনুমতি প্রয়োজন", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void launchFileChooser(WebChromeClient.FileChooserParams fileChooserParams) {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        
+        Intent chooserIntent = Intent.createChooser(intent, "ছবি নির্বাচন করুন");
+        
+        try {
+            fileChooserLauncher.launch(chooserIntent);
+        } catch (Exception e) {
+            if (filePathCallback != null) {
+                filePathCallback.onReceiveValue(null);
+                filePathCallback = null;
+            }
+            Toast.makeText(this, "ফাইল চুজার খুলতে পারেনি", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadWebsite() {
