@@ -176,6 +176,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
+                
+                // Handle Facebook links - try to open in Facebook app
+                if (url.contains("facebook.com") || url.contains("fb.com")) {
+                    try {
+                        // Try to open in Facebook app first
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        intent.setPackage("com.facebook.katana");
+                        startActivity(intent);
+                        return true;
+                    } catch (Exception e) {
+                        // Facebook app not installed, try browser
+                        try {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            startActivity(intent);
+                            return true;
+                        } catch (Exception ex) {
+                            // Couldn't open, let WebView handle it
+                            return false;
+                        }
+                    }
+                }
+                
                 if (url.startsWith("whatsapp://") ||
                     url.startsWith("https://wa.me/") ||
                     url.startsWith("https://api.whatsapp.com/") ||
